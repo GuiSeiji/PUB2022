@@ -8,6 +8,7 @@ import dash_bootstrap_components as dbc
 import plotly
 import pandas_ta as ta
 import numpy as np
+import dash_daq as daq
 
 #Data 
 
@@ -202,6 +203,22 @@ figpbr.add_trace(
 figpbr.add_hline(y=30, line_width=1, line_dash="dash", line_color="green", row=3, col=1)
 figpbr.add_hline(y=70, line_width=1, line_dash="dash", line_color="red", row=3, col=1)
 
+#Previsão
+
+date_prev = '2022-08-29'
+
+maskAAPL = (dataAAPL['Date']>date_prev)
+AAPL_prev = dataAAPL.loc[maskAAPL]
+figprevap = px.line(AAPL_prev,x = 'Date',y = "Close")
+
+
+maskGOOG = (dataGOOG['Date']>date_prev)
+GOOG_prev = dataGOOG.loc[maskGOOG]
+figprevgoo = px.line(GOOG_prev,x = 'Date',y = "Close")
+
+maskPBR = (dataPBR['Date']>date_prev)
+PBR_prev = dataPBR.loc[maskPBR]
+figprevpbr = px.line(PBR_prev,x = 'Date',y = "Close")
 
 #APP
 
@@ -226,27 +243,88 @@ app_tabs = html.Div(
 apple_layout = html.Div([
     dbc.Row([
         dbc.Col([
+            html.H2('Preços e Indicadores',style={"textAlign": "center"}),
             dcc.Graph(
             figure = figap) 
-        ],width = 7,)   
+        ],width = 7,style= {'border':'solid',
+                           'border-color':'black',
+                           'border-width':'1px',
+                           'padding':'10px'}),
+        dbc.Col([
+            html.H2('Previsão',style={"textAlign": "center"}),
+            dcc.Graph(
+            figure = figprevap),
+            daq.Gauge(
+            id = 'gauge',
+            value = 0.6,
+            min = 0,
+            max = 1,
+            color={"gradient":True,"ranges":{"red":[0,0.6],"yellow":[0.6,0.8],"green":[0.8,1]}},
+            label = 'Tendência')
+            
+        ],width = 5,style= {'border':'solid',
+                           'border-color':'black',
+                           'border-width':'1px',
+                           'padding':'10px'})
     ])    
 ])
 
 google_layout = html.Div([
     dbc.Row([
         dbc.Col([
+            html.H2('Preços e Indicadores',style={"textAlign": "center"}),
             dcc.Graph(
             figure = figgo) 
-        ],width = 7,)   
+        ],width = 7,style= {'border':'solid',
+                           'border-color':'black',
+                           'border-width':'1px',
+                           'padding':'10px'}),
+        dbc.Col([
+            html.H2('Previsão',style={"textAlign": "center"}),
+            dcc.Graph(
+            figure = figprevgoo),
+            daq.Gauge(
+            id = 'gauge',
+            value = 0.6,
+            min = 0,
+            max = 1,
+            color={"gradient":True,"ranges":{"red":[0,0.6],"yellow":[0.6,0.8],"green":[0.8,1]}},
+            label = 'Tendência')
+            
+        ],width = 5,style= {'border':'solid',
+                           'border-color':'black',
+                           'border-width':'1px',
+                           'padding':'10px'})
     ])    
 ])
+
 
 petrobras_layout = html.Div([
     dbc.Row([
         dbc.Col([
+            html.H2('Preços e Indicadores',style={"textAlign": "center"}),
             dcc.Graph(
             figure = figpbr) 
-        ],width = 7,)   
+        ],width = 7,style= {'border':'solid',
+                           'border-color':'black',
+                           'border-width':'1px',
+                           'padding':'10px'}),
+        dbc.Col([
+            html.H2('Previsão',style={"textAlign": "center"}),
+            dcc.Graph(
+            figure = figprevpbr),
+            daq.Gauge(
+            id = 'gauge',
+            value = 0.6,
+            min = 0,
+            max = 1,
+            color={"gradient":True,"ranges":{"red":[0,0.6],"yellow":[0.6,0.8],"green":[0.8,1]}},
+            label = 'Tendência')
+            
+        ],width = 5,style= {'border':'solid',
+                           'border-color':'black',
+                           'border-width':'1px',
+                           'padding':'10px'})
     ])    
 ])
 
@@ -255,8 +333,10 @@ petrobras_layout = html.Div([
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.MORPH])
 
 app.layout = dbc.Container([
-    dbc.Row(dbc.Col(html.H1("Portifolio",
-                            style={"textAlign": "center"}), width=12)),
+    dbc.Row(dbc.Col(
+
+        html.H1("Portifolio",
+                style={"textAlign": "center",'padding-top':'10px'}), width=12)),
     html.Hr(),
     dbc.Row(dbc.Col(app_tabs, width=12), className="mb-3"),
     html.Div(id='content', children=[])
@@ -274,8 +354,8 @@ def switch_tab(tab_chosen):
         figap.update_layout(layout)
         figap.update_yaxes(title_text="Price", row=1, col=1)
         figap.update_yaxes(title_text="MACD", row=2, col=1)
-        figgo.update_yaxes(title_text="RSI", row=3, col=1)
-        
+        figap.update_yaxes(title_text="RSI", row=3, col=1)
+        figprevap.update_layout(plot_bgcolor='white')
         
         return apple_layout
     elif tab_chosen == "tab-google":
@@ -285,7 +365,7 @@ def switch_tab(tab_chosen):
         figgo.update_yaxes(title_text="Price", row=1, col=1)
         figgo.update_yaxes(title_text="MACD", row=2, col=1)
         figgo.update_yaxes(title_text="RSI", row=3, col=1)
-        
+        figprevgoo.update_layout(plot_bgcolor='white')
         
         return google_layout
     elif tab_chosen == "tab-petro":
@@ -294,7 +374,8 @@ def switch_tab(tab_chosen):
         figpbr.update_layout(layout)
         figpbr.update_yaxes(title_text="Price", row=1, col=1)
         figpbr.update_yaxes(title_text="MACD", row=2, col=1)
-        figgo.update_yaxes(title_text="RSI", row=3, col=1)
+        figpbr.update_yaxes(title_text="RSI", row=3, col=1)
+        figprevpbr.update_layout(plot_bgcolor='white')
         
         return petrobras_layout
     return html.P("This shouldn't be displayed for now...")
